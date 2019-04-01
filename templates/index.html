@@ -1,0 +1,96 @@
+<html>
+    <head>
+        <title>{{ title }}</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+        <script src="http://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+                
+        <link type="text/css" rel="stylesheet" href="/static/css/style.css">
+    </head>
+    <body class="body-margins">
+        <script type=text/javascript>
+          $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        </script>
+        
+        <script type=text/javascript>
+          $(function(){   
+            // Sorts the table after day2 values are calculated
+            function sortTable(){
+              var rows = $('#rankTable tbody tr').get();
+
+              rows.sort(function(a, b) {
+                var A = parseInt($(a).children('td').eq(2).text())
+                var B = parseInt($(b).children('td').eq(2).text())
+                
+                if(A == B){
+                  return 0
+                }
+                else{
+                  return A < B ? 1 : -1
+                }
+              });
+
+              $.each(rows, function(index, row) {
+                $(row).children('td').eq(0).html(index + 1)
+                $('#rankTable').children('tbody').append(row);
+              });
+            }
+            
+            // Gets the day2 score
+            function getScore(firstCheck){
+              $.getJSON($SCRIPT_ROOT + '/get-score?firstCheck=' + firstCheck.toString(), function(data) {
+                content = '';
+                $.each(data['currentData'], function(indexCurrent, valueCurrent) {
+                  content += '<tr id="' + valueCurrent.n_e + '">';
+                  content += '<td style="width: 40px !important">' + (indexCurrent+1) + '</td>';
+                  content += '<td style="width: 200px !important">' + valueCurrent.n_e + '</td>';
+                  content += '<td style="width: 200px !important">' + (valueCurrent['pp']['6'] - data['day1Data'][valueCurrent.n_e]) + '</td>';
+                  content += '</tr>';
+                });
+                
+                $('#rankTable tbody').html(content); 
+                
+                sortTable()
+              })
+              
+              // Fade effect
+              $(".rank-table th")
+                .animate({borderColor:'red'}, 0)
+                .delay(1000)
+                .animate({borderColor:'black'}, 1000);
+            }
+            
+            setInterval(function() { getScore(false); }, 30 * 1000);
+            getScore(true);
+          });
+        </script>
+
+        <div class="container">
+          <div class="row justify-content-center">
+            <div class="col-auto">
+              <h1 class="title-bold">March Madness Party Ranks</h1>
+            </div>
+          </div>
+          
+          <div class="row justify-content-center">
+            <div class="col-auto">
+              <table id = "rankTable" class="rank-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>USER</th>
+                    <th>DAY 2 SCORE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>        
+    </body>
+</html>
