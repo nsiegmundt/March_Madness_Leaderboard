@@ -4,6 +4,8 @@ import requests
 import json
 import io
 
+groupID = "2853834"
+
 app = Flask(__name__, static_url_path='/static')
 
 # Handles GET requests
@@ -12,12 +14,13 @@ def index():
     # Render page
     return render_template('index.html', title='Home')
 
+# Handles GET request to the ESPN endpoint to retrieve data
 @app.route('/get-score')
 def espnGet():
     firstCheck = request.args.get('firstCheck')
     # firstCheck = "false"
     
-    groupEndpoint = "http://fantasy.espncdn.com/tournament-challenge-bracket/2019/en/api/group?groupID=2853834&sort=-1&start=0&length=50&periodPoints=true"
+    groupEndpoint = "http://fantasy.espncdn.com/tournament-challenge-bracket/2019/en/api/group?groupID=" + groupID + "&sort=-1&start=0&length=50&periodPoints=true"
     
     response = requests.get(url=groupEndpoint)
     dataArray = response.json()['g']['e']
@@ -28,7 +31,6 @@ def espnGet():
         
         for data in dataArray:
             day1Data[data["n_e"]] = data['pp']['6']
-            # day1Data[data["n_e"]] = randint(150, 250) * -1
          
         with io.open('data1_data.txt', 'w', encoding='utf8') as outfile:  
             json.dump(day1Data, outfile)
